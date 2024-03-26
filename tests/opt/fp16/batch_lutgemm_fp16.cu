@@ -20,12 +20,12 @@ template<int M, int N, int K, int NUM_BITS, int A_GROUP_SIZE=K>
 class batch_lutgemm_fp16{
 public:
     static const int num_groups = K/A_GROUP_SIZE;
-    float     qW[K   ][NUM_BITS][M][N]; // (-1, 1) 
-    uint32_t  bW[K/32][NUM_BITS][M][N]; // bit packed
-    float     alpha[num_groups][NUM_BITS][M][N];
+    float     qW[M][K   ][NUM_BITS][N]; // (-1, 1) 
+    uint32_t  bW[M][K/32][NUM_BITS][N]; // bit packed
+    float     alpha[M][num_groups][NUM_BITS][N];
     //float    q_bias[num_groups][N];
 
-    float   weight[K][M][N];           // float weight
+    float   weight[M][K][N];           // float weight
     float    input[M][K];
     float   output[M][N];
 
@@ -137,7 +137,7 @@ public:
             for(int n=0;n<N;n++){
                 output[m][n] = 0;
                 for(int k=0;k<K;k++){
-                    output[m][n] += input[m][k] * weight[k][m][n];
+                    output[m][n] += input[m][k] * weight[m][k][n];
                 }
             }
         }
@@ -158,13 +158,13 @@ public:
     }
 
     void makeRandomAlpha(){
-        for(int g=0;g<num_groups;g++)
-            for(int m=0;m<M;m++){
+        for(int m=0;m<M;m++){
+            for(int g=0;g<num_groups;g++)
                 for(int n=0;n<N;n++){
                     //q_bias[g][n] = rand_fp32()/(1<< NUM_BITS);
                     for(int b=0;b<NUM_BITS;b++)
                         //alpha[g][b][m][n] = rand_fp32()/(1<<b); // (-1.0, 1.0) / 2^b
-                        alpha[g][b][m][n] = 1; // (-1.0, 1.0) / 2^b
+                        alpha[m][g][b][n] = 1; // (-1.0, 1.0) / 2^b
                 }
             }
     }
@@ -195,15 +195,15 @@ public:
                     for(int t=0;t<32;t++){
                         if(rand_bool()){
                                 s |= 1<<t;
-                                qW[k + t][b][0][n] = +1;
-                                qW[k + t][b][1][n] = +1;
+                                qW[0][k + t][b][n] = +1;
+                                qW[1][k + t][b][n] = +1;
                         } else  {
-                            qW[k + t][b][0][n] = -1;
-                            qW[k + t][b][1][n] = -1;
+                            qW[0][k + t][b][n] = -1;
+                            qW[1][k + t][b][n] = -1;
                         }
                     }
-                    bW[k/32][b][0][n] = s;
-                    bW[k/32][b][1][n] = s;
+                    bW[0][k/32][b][n] = s;
+                    bW[1][k/32][b][n] = s;
                 }
             }
         }
@@ -214,9 +214,9 @@ public:
             for(int n=0;n<N;n++){
                 for(int k=0;k<K;k++){  //32 단위
                     //weight[k][n] = q_bias[k/A_GROUP_SIZE][n];
-                    weight[k][m][n] = 0;
+                    weight[m][k][n] = 0;
                     for(int b=0;b<NUM_BITS;b++){
-                        weight[k][m][n] += alpha[k/A_GROUP_SIZE][b][m][n] * qW[k][b][m][n]; 
+                        weight[m][k][n] += alpha[m][k/A_GROUP_SIZE][b][n] * qW[m][k][b][n]; 
                     }
                 }
             }
