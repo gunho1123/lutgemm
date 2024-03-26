@@ -81,7 +81,7 @@ __global__ void _nqmm(uint32_t *W, __half *alpha, __half *input, __half *output,
 inline void nqmm(__half *output, nQWeight_fp16 &nqW, __half *input, int N){
 
     const int k_tile_size  =  32;
-    int m_tile_size  =  512;
+    int m_tile_size  =  2048;
     int num_thraeds  =  256;
     dim3 grid(
         lutGEMM::kernel::div_roundup(nqW.mSize, m_tile_size), 
