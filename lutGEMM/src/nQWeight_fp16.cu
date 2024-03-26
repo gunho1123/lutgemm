@@ -69,7 +69,7 @@ void nQWeight_fp16::parsing(unsigned int *bW, float *A, int row, int col, int n,
     }
     
     cudaMallocManaged(&p_alpha    ,sizeof(__half  ) * num_groups * mSize * nb * n);
-    for(int i=0;i<num_groups*mSize*nb;i++) p_alpha[i] = __float2half(A[i]);
+    for(int i=0;i<num_groups*mSize*nb*n;i++) p_alpha[i] = __float2half(A[i]);
 
     cudaMallocManaged(&bWeight  ,sizeof(uint32_t) * kSize * mSize * nb / 32 * n);
     cudaMemcpy(bWeight ,bW      ,sizeof(uint32_t) * kSize * mSize * nb / 32 * n,    cudaMemcpyHostToDevice);

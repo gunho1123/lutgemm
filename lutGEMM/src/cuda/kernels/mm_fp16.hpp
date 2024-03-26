@@ -4,7 +4,8 @@
 namespace kernel{
 
 template<int K_TILE_SIZE>
-__global__ void _nqmm(uint32_t *W, __half *alpha, __half *input, __half *output, int M, int N, int K, int NUM_BITS, int M_TILE_SIZE, int group_size){
+__global__ void _nqmm(uint32_t *W, __half *alpha, __half *input, __half *output,
+                    int M, int N, int K, int NUM_BITS, int M_TILE_SIZE, int group_size){
 
     __shared__ __half lut[K_TILE_SIZE/8][256];
     const int lut_x_size = blockDim.x / (K_TILE_SIZE/8);
@@ -53,10 +54,8 @@ __global__ void _nqmm(uint32_t *W, __half *alpha, __half *input, __half *output,
         __half reg_o0 = 0;
         __half reg_o1 = 0;
         for(int b=0;b < NUM_BITS;b++){
-            //__half   reg_a0 = alpha[blockIdx.z * K/group_size* NUM_BITS * M + group_idx*NUM_BITS*M + b * M + m + 0];
-            //__half   reg_a1 = alpha[blockIdx.z * K/group_size* NUM_BITS * M + group_idx*NUM_BITS*M + b * M + m + 1];
-            __half   reg_a0 = 1;
-            __half   reg_a1 = 1;
+            __half   reg_a0 = alpha[blockIdx.z * K/group_size* NUM_BITS * M + group_idx*NUM_BITS*M + b * M + m + 0];
+            __half   reg_a1 = alpha[blockIdx.z * K/group_size* NUM_BITS * M + group_idx*NUM_BITS*M + b * M + m + 1];
             __half   reg_t_o0 = 0;
             __half   reg_t_o1 = 0;
             for(int kt=0;kt < K_TILE_SIZE/32;kt++){
