@@ -125,7 +125,7 @@ public:
         for(int m=0;m<M;m++){
             for(int n=0;n<N;n++){
                 err += std::abs(float(output[m][n]) - float(o2[m*N + n]));
-                if(n>1000) printf("%f %f\n", float(output[m][n]), float(o2[m*N + n]));
+                if(n>500) printf("%f %f\n", float(output[m][n]), float(o2[m*N + n]));
             }
             printf("=================================\n");
         }
@@ -143,10 +143,18 @@ public:
         }
     }
 
-    void makeRandomInput(){
+    /*void makeRandomInput(){
         for(int m=0;m<M;m++)
             for(int k=0;k<K;k++)
                 input[m][k] = rand_fp32(); // (-1.0, 1.0) / 2^b
+    }*/
+    void makeRandomInput(){
+        for(int k=0;k<K;k++){
+            float temp = rand_fp32();
+            for(int m=0;m<M;m++){
+                input[m][k] = temp;
+            }
+        }
     }
 
     void makeRandomAlpha(){
@@ -161,7 +169,7 @@ public:
             }
     }
 
-    void makeRandomWeight(){
+    /*void makeRandomWeight(){
         for(int m=0;m<M;m++){
             for(int n=0;n<N;n++){
                 for(int b=0;b<NUM_BITS;b++){
@@ -175,6 +183,27 @@ public:
                         }
                         bW[k/32][b][m][n] = s;
                     }
+                }
+            }
+        }
+    }*/
+    void makeRandomWeight(){
+        for(int n=0;n<N;n++){
+            for(int b=0;b<NUM_BITS;b++){
+                for(int k=0;k<K;k+=32){  //32 단위
+                    uint32_t s=0;
+                    for(int t=0;t<32;t++){
+                        if(rand_bool()){
+                                s |= 1<<t;
+                                qW[k + t][b][0][n] = +1;
+                                qW[k + t][b][1][n] = +1;
+                        } else  {
+                            qW[k + t][b][0][n] = -1;
+                            qW[k + t][b][1][n] = -1;
+                        }
+                    }
+                    bW[k/32][b][0][n] = s;
+                    bW[k/32][b][1][n] = s;
                 }
             }
         }
@@ -227,7 +256,7 @@ public:
 
 };
 
-const int H = 1024;
+const int H = 512;
 TEST(batch_lutgemm_fp16, layer_175b){
     double total_error = 0;
     int e_cnt = 0;
@@ -236,7 +265,7 @@ TEST(batch_lutgemm_fp16, layer_175b){
     printf("Warm up done.\n");
     printf("----------------------------------------------------------------\n");
     printf("M = 1, N = %d, K = %d\n", H, H);
-    printf("LUT-GEMM [INT4, FP16, FP16]\t");
+    printf("LUT-GEMM [INT4, FP16, FP16]\n");
     { auto t = std::make_shared<batch_lutgemm_fp16<2, H, H, 4, 128>>(); total_error += t->run(false, true, false); e_cnt++; } 
     printf("%.5f\n", total_error);
 
