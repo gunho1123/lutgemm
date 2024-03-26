@@ -20,7 +20,7 @@ add_executable(tests
     src/custom_random.cpp
     main.cc
 
-    opt/fp16/int3_col_wise_matmul_fp16.cu
+    opt/fp16/batch_lutgemm_fp16.cu
 
 )
 set_target_properties(tests PROPERTIES POSITION_INDEPENDENT_CODE ON)

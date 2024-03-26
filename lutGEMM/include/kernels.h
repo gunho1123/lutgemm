@@ -16,7 +16,8 @@ void matmul_gptq(
 void matmul_gptq_faster(
     int m, int n, int k, void *scale, void *bias,
     void *A, void *B, void *C);
+void matmul_batch_lutgemm(void* output, void* input, nQWeight_fp16 &nqW, int m);
 }
 
-#endif
 
+#endif

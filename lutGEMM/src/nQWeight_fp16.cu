@@ -44,7 +44,7 @@ void dequantize_cpu(nQWeight_fp16 &nqw, void *fW){
         }
     }
 }
-void nQWeight_fp16::parsing(unsigned int *bW, float *A, int row, int col, int num_bits, 
+void nQWeight_fp16::parsing(unsigned int *bW, float *A, int row, int col, int n, int num_bits, 
         bool is_row_wise_quantize, int num_alpha_groups, float* q_bias){
     this->num_groups = num_alpha_groups;
     this->group_size =  kSize/num_alpha_groups;
@@ -68,11 +68,11 @@ void nQWeight_fp16::parsing(unsigned int *bW, float *A, int row, int col, int nu
         for(int i=0;i<num_groups*mSize;i++) p_q_bias[i] = __float2half(q_bias[i]);
     }
     
-    cudaMallocManaged(&p_alpha    ,sizeof(__half  ) * num_groups * mSize * nb);
+    cudaMallocManaged(&p_alpha    ,sizeof(__half  ) * num_groups * mSize * nb * n);
     for(int i=0;i<num_groups*mSize*nb;i++) p_alpha[i] = __float2half(A[i]);
 
-    cudaMallocManaged(&bWeight  ,sizeof(uint32_t) * kSize * mSize * nb / 32);
-    cudaMemcpy(bWeight ,bW      ,sizeof(uint32_t) * kSize * mSize * nb / 32,    cudaMemcpyHostToDevice);
+    cudaMallocManaged(&bWeight  ,sizeof(uint32_t) * kSize * mSize * nb / 32 * n);
+    cudaMemcpy(bWeight ,bW      ,sizeof(uint32_t) * kSize * mSize * nb / 32 * n,    cudaMemcpyHostToDevice);
     this->alpha = (void*)p_alpha;
     this->q_bias = (void*)p_q_bias;
 }

@@ -18,17 +18,18 @@ public:
     int group_size;
     int mSize;
     int kSize;   
+    int nSize;   
     int nb;
     bool is_row_wise_quantize;
     nQWeight_fp16() {}
 
     /* uint32 bW[kSize/32][nb][mSize]  alpha[num_alpha_groups][mSize][nb] */
-    nQWeight_fp16(unsigned int *bW, float *A, int row, int col, int num_bits, 
+    nQWeight_fp16(unsigned int *bW, float *A, int row, int col, int n, int num_bits, 
         bool is_row_wise_quantize, int num_alpha_groups=1, float* q_bias=nullptr){
-        parsing(bW, A, row, col, num_bits, is_row_wise_quantize, num_alpha_groups, q_bias);
+        parsing(bW, A, row, col, n, num_bits, is_row_wise_quantize, num_alpha_groups, q_bias);
     }
 
-    void parsing(unsigned int *bW, float *A, int row, int col, int num_bits, 
+    void parsing(unsigned int *bW, float *A, int row, int col, int n, int num_bits, 
         bool is_row_wise_quantize, int num_alpha_groups=1, float* q_bias=nullptr);
 
     ~nQWeight_fp16();

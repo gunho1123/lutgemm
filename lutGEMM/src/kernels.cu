@@ -10,6 +10,7 @@ namespace lutGEMM{
 #include "../src/cuda/kernels/mv_fp16_bias.hpp"
 #include "../src/cuda/kernels/gptq_fp16_bias.hpp"
 #include "../src/cuda/kernels/gptq_faster_fp16_bias.hpp"
+#include "../src/cuda/kernels/mm_fp16.hpp"
 
 void matmul(void* output, nQWeight_fp16 &nqW, void* input, int n, int algo);
 void matmul(void* output, void* input, nQWeight_fp16 &nqW, int m, int algo);
@@ -35,6 +36,12 @@ void matmul_gptq_faster(
     cudaMemset(C, 0, sizeof(__half) * m * n);
     kernel::gptq_faster(n, k, (__half*)scale, (__half*)bias,
                 (half2*)A, (uint32_t*)B, (__half*)C);
+}
+
+void matmul_batch_lutgemm(void* output, void* input, nQWeight_fp16 &nqW, int m){
+    cudaMemset(output, 0, sizeof(__half) * nqW.mSize * m);
+    kernel::nqmm((__half*)output, nqW, (__half*)input, m);
+
 }
 
 void matmul(void* output, nQWeight_fp16 &nqW, void* input, int n, int algo){
